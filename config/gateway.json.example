@@ -1,0 +1,40 @@
+{
+  "allowedHosts": [
+    {
+      "host": "example.com",
+      "description": "Example SSH server",
+      "protocols": ["ssh", "telnet"],
+      "defaultPort": {
+        "ssh": 22,
+        "telnet": 23
+      }
+    },
+    {
+      "host": "towel.blinkenlights.nl",
+      "description": "Star Wars ASCII movie (Telnet)",
+      "protocols": ["telnet"],
+      "defaultPort": {
+        "telnet": 23
+      }
+    },
+    {
+      "host": "test.example.com",
+      "description": "Test server with custom ports",
+      "protocols": ["ssh", "telnet"],
+      "defaultPort": {
+        "ssh": 2222,
+        "telnet": 2323
+      }
+    }
+  ],
+  "security": {
+    "requireHostValidation": true,
+    "allowPrivateNetworks": true,
+    "maxConnectionTime": 3600000,
+    "connectionTimeout": 30000
+  },
+  "logging": {
+    "logConnections": true,
+    "logLevel": "info"
+  }
+}

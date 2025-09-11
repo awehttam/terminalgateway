@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Gateway</title>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .connection-panel {
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .connection-panel.collapsed {
+            max-height: 60px;
+            padding: 10px 20px;
+        }
+
+        .connection-panel.collapsed .connection-forms {
+            display: none;
+        }
+
+        .connection-forms {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .form-group h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, button {
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            background-color: #4CAF50;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+
+        .disconnect-btn {
+            background-color: #f44336;
+        }
+
+        .disconnect-btn:hover {
+            background-color: #da190b;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status.disconnected {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status.connected {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .status.connecting {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .terminal-container {
+            background-color: #000;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .connection-forms {
+                flex-direction: column;
+            }
+            
+            .input-row {
+                flex-direction: column;
+            }
+            
+            input, button {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Terminal Gateway</h1>
+            <p>Connect to remote systems via SSH or Telnet</p>
+        </div>
+
+        <div class="connection-panel">
+            <div class="connection-forms">
+                <div class="form-group">
+                    <h3>SSH Connection</h3>
+                    <div class="input-row">
+                        <input type="text" id="ssh-host" placeholder="Host (e.g., example.com)" required>
+                        <input type="number" id="ssh-port" placeholder="Port (22)" value="22">
+                    </div>
+                    <div class="input-row">
+                        <input type="text" id="ssh-username" placeholder="Username" required>
+                        <input type="password" id="ssh-password" placeholder="Password">
+                    </div>
+                    <div class="input-row">
+                        <button id="connect-ssh">Connect SSH</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <h3>Telnet Connection</h3>
+                    <div class="input-row">
+                        <input type="text" id="telnet-host" placeholder="Host (e.g., towel.blinkenlights.nl)" required>
+                        <input type="number" id="telnet-port" placeholder="Port (23)" value="23">
+                    </div>
+                    <div class="input-row">
+                        <button id="connect-telnet">Connect Telnet</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <button id="disconnect" class="disconnect-btn hidden">Disconnect</button>
+            </div>
+        </div>
+
+        <div id="status" class="status disconnected">Disconnected</div>
+
+        <div class="terminal-container">
+            <div id="terminal"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://unpkg.com/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
