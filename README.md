@@ -279,41 +279,53 @@ chmod +x start-gateway.sh
 2. Edit the script to set the correct path:
 ```bash
 nano start-gateway.sh
-# Change /path/to/terminalgateway to your actual path
+# Change /path/to/terminalgateway to /home/webterminal
 ```
 
 3. Add to crontab:
 ```bash
 crontab -e
 # Add this line:
-@reboot /path/to/terminalgateway/start-gateway.sh
+@reboot /home/webterminal/start-gateway.sh
 ```
 
-### Option 2: Systemd Service (Recommended for Linux)
+### Option 2: Systemd User Service (Recommended for Linux)
 
-1. Copy the service file:
+1. Create the user systemd directory and copy the service file:
 ```bash
-sudo cp terminal-gateway.service /etc/systemd/system/
+mkdir -p ~/.config/systemd/user
+cp terminal-gateway.service ~/.config/systemd/user/
 ```
 
-2. Edit the service file to set correct paths and user:
+2. Edit the service file to set the correct path:
 ```bash
-sudo nano /etc/systemd/system/terminal-gateway.service
-# Update WorkingDirectory and User/Group
+nano ~/.config/systemd/user/terminal-gateway.service
+# Update WorkingDirectory=/home/webterminal
 ```
 
-3. Enable and start the service:
+3. Enable lingering (allows service to run without user login):
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable terminal-gateway
-sudo systemctl start terminal-gateway
+sudo loginctl enable-linger $USER
 ```
 
-4. Check service status:
+4. Enable and start the user service:
 ```bash
-sudo systemctl status terminal-gateway
-sudo journalctl -u terminal-gateway -f
+systemctl --user daemon-reload
+systemctl --user enable terminal-gateway
+systemctl --user start terminal-gateway
 ```
+
+5. Check service status:
+```bash
+systemctl --user status terminal-gateway
+journalctl --user -u terminal-gateway -f
+```
+
+**Benefits of user service:**
+- Runs under your user account (no need for dedicated user)
+- Survives user logout (with lingering enabled)
+- Uses your home directory path automatically
+- Easier to manage and debug
 
 ### Option 3: PM2 Process Manager (Cross-platform)
 

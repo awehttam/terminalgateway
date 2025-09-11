@@ -5,9 +5,7 @@ Wants=network.target
 
 [Service]
 Type=simple
-User=nodeuser
-Group=nodeuser
-WorkingDirectory=/opt/terminalgateway
+WorkingDirectory=/home/webterminal
 Environment=NODE_ENV=production
 Environment=PORT=3000
 ExecStart=/usr/bin/node server.js
@@ -20,9 +18,6 @@ SyslogIdentifier=terminal-gateway
 # Security settings
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ReadWritePaths=/opt/terminalgateway/config
-ProtectHome=true
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

@@ -2,7 +2,7 @@
 
 # Terminal Gateway startup script
 # Change to the correct directory
-cd /path/to/terminalgateway
+cd /home/webterminal
 
 # Set environment variables
 export NODE_ENV=production
