@@ -20,18 +20,115 @@ A web-based terminal that can connect to remote systems via SSH or Telnet using 
 npm install
 ```
 
+## Configuration
+
+Before running the server, you need to configure the allowed hosts and security settings.
+
+### Gateway Configuration
+
+1. Copy the example configuration:
+```bash
+cp config/gateway.json.example config/gateway.json
+```
+
+2. Edit `config/gateway.json` to configure allowed hosts:
+
+```json
+{
+  "allowedHosts": [
+    {
+      "host": "your-server.example.com",
+      "description": "My SSH Server",
+      "protocols": ["ssh", "telnet"],
+      "defaultPort": {
+        "ssh": 22,
+        "telnet": 23
+      }
+    }
+  ],
+  "security": {
+    "requireHostValidation": true,
+    "allowPrivateNetworks": false,
+    "maxConnectionTime": 3600000,
+    "connectionTimeout": 30000
+  },
+  "logging": {
+    "logConnections": true,
+    "logLevel": "info"
+  }
+}
+```
+
+### Configuration Options
+
+#### allowedHosts
+- **host**: The hostname or IP address to allow connections to
+- **description**: Human-readable description of the host
+- **protocols**: Array of allowed protocols (`["ssh", "telnet"]`)
+- **defaultPort**: Default ports for each protocol
+
+#### security
+- **requireHostValidation**: Whether to enforce the allowedHosts list (default: `true`)
+- **allowPrivateNetworks**: Allow connections to private IP ranges (default: `false`)
+- **maxConnectionTime**: Maximum connection time in milliseconds
+- **connectionTimeout**: Connection timeout in milliseconds
+
+#### logging
+- **logConnections**: Whether to log connection attempts
+- **logLevel**: Logging level (`"info"`, `"warn"`, `"error"`)
+
+⚠️ **Important**: The server must be restarted after changing the configuration file.
+
+### PHP Client Configuration
+
+The `php/index.php` file provides a standalone client that can be used independently. To configure it:
+
+1. Edit the connection settings in `php/index.php`:
+```php
+// Pre-configured proxy server settings
+const PROXY_HOST = 'localhost';  // Your gateway server host
+const PROXY_PORT = 3000;         // Your gateway server port
+
+// Remote SSH/Telnet host settings
+const REMOTE_HOST = 'your-server.example.com';  // Target server
+const REMOTE_PORT = 22;          // Target port (22 for SSH, 1337 for Telnet, etc.)
+```
+
+2. Update the connection type (SSH or Telnet):
+```javascript
+// For SSH connections
+socket.emit('connect-ssh', {
+    host: REMOTE_HOST,
+    port: REMOTE_PORT,
+    username: username,
+    password: password
+});
+
+// For Telnet connections  
+socket.emit('connect-telnet', {
+    host: REMOTE_HOST,
+    port: REMOTE_PORT
+});
+```
+
+The PHP client includes all required assets locally (`php/assets/`) so it works without internet connectivity.
+
 ## Usage
 
-1. Start the server:
+1. Configure allowed hosts in `config/gateway.json`
+
+2. Start the server:
 ```bash
 npm start
 ```
 
-2. Open your browser and go to `http://localhost:3000`
+3. Open your browser and go to `http://localhost:3000`
 
-3. Connect to a remote system:
+4. Connect to a remote system:
    - **SSH**: Enter host, port (default 22), username, and password
    - **Telnet**: Enter host and port (default 23)
+
+**Note**: Only hosts listed in `allowedHosts` with the appropriate protocols will be permitted to connect.
 
 ## Development
 
