@@ -145,6 +145,24 @@
             display: none;
         }
 
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid #444;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .connection-forms {
                 flex-direction: column;
@@ -163,10 +181,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🖥️ Terminal Gateway</h1>
-            <p>Connect to remote systems via SSH or Telnet</p>
-        </div>
 
         <div class="connection-panel">
             <div class="connection-forms">
@@ -188,8 +202,8 @@
                 <div class="form-group">
                     <h3>Telnet Connection</h3>
                     <div class="input-row">
-                        <input type="text" id="telnet-host" placeholder="Host (e.g., towel.blinkenlights.nl)" required>
-                        <input type="number" id="telnet-port" placeholder="Port (23)" value="23">
+                        <input type="text" id="telnet-host" placeholder="Host (e.g., towel.blinkenlights.nl)" value="revpol.lovelybits.org" required>
+                        <input type="number" id="telnet-port" placeholder="Port (23)" value="1337">
                     </div>
                     <div class="input-row">
                         <button id="connect-telnet">Connect Telnet</button>
@@ -206,6 +220,13 @@
 
         <div class="terminal-container">
             <div id="terminal"></div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <a href="https://github.com/awehttam/terminalgateway" target="_blank">Terminal Gateway on GitHub</a>
+                | Contact: <strong>sysop@1:153/149</strong>
+            </p>
         </div>
     </div>
 
