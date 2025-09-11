@@ -1,0 +1,28 @@
+[Unit]
+Description=Terminal Gateway Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=nodeuser
+Group=nodeuser
+WorkingDirectory=/opt/terminalgateway
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=terminal-gateway
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/terminalgateway/config
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

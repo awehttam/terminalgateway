@@ -267,6 +267,114 @@ export PORT=3000
 export HOST=localhost
 ```
 
+## Automatic Startup
+
+### Option 1: Cron with @reboot (Simple)
+
+1. Make the startup script executable:
+```bash
+chmod +x start-gateway.sh
+```
+
+2. Edit the script to set the correct path:
+```bash
+nano start-gateway.sh
+# Change /path/to/terminalgateway to your actual path
+```
+
+3. Add to crontab:
+```bash
+crontab -e
+# Add this line:
+@reboot /path/to/terminalgateway/start-gateway.sh
+```
+
+### Option 2: Systemd Service (Recommended for Linux)
+
+1. Copy the service file:
+```bash
+sudo cp terminal-gateway.service /etc/systemd/system/
+```
+
+2. Edit the service file to set correct paths and user:
+```bash
+sudo nano /etc/systemd/system/terminal-gateway.service
+# Update WorkingDirectory and User/Group
+```
+
+3. Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable terminal-gateway
+sudo systemctl start terminal-gateway
+```
+
+4. Check service status:
+```bash
+sudo systemctl status terminal-gateway
+sudo journalctl -u terminal-gateway -f
+```
+
+### Option 3: PM2 Process Manager (Cross-platform)
+
+1. Install PM2 globally:
+```bash
+npm install -g pm2
+```
+
+2. Start the application:
+```bash
+pm2 start ecosystem.config.js --env production
+```
+
+3. Save PM2 configuration:
+```bash
+pm2 save
+pm2 startup
+# Follow the instructions to enable startup on boot
+```
+
+4. Manage the process:
+```bash
+pm2 status
+pm2 logs terminal-gateway
+pm2 restart terminal-gateway
+pm2 stop terminal-gateway
+```
+
+### Option 4: Docker (Containerized)
+
+Create a `Dockerfile`:
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 3000
+USER node
+CMD ["npm", "start"]
+```
+
+Build and run:
+```bash
+docker build -t terminal-gateway .
+docker run -d --name terminal-gateway -p 3000:3000 terminal-gateway
+```
+
+With Docker Compose (`docker-compose.yml`):
+```yaml
+version: '3.8'
+services:
+  terminal-gateway:
+    build: .
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config:ro
+```
+
 ## Security Notes
 
 ⚠️ **Important**: This tool requires additional security considerations for production use:
