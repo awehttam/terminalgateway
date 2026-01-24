@@ -140,11 +140,11 @@ class ConnectionManager {
         const connectionId = socket.id;
 
         const telnetSocket = new net.Socket();
-        
+
         telnetSocket.connect(config.port || 23, config.host, () => {
             console.log('Telnet connection established');
             socket.emit('connection-status', { status: 'connected', type: 'telnet' });
-            
+
             this.connections.set(connectionId, { type: 'telnet', connection: telnetSocket });
         });
 
@@ -176,6 +176,81 @@ class ConnectionManager {
         });
     }
 
+    createRloginConnection(socket, config) {
+        const net = require('net');
+        const connectionId = socket.id;
+
+        const rloginSocket = new net.Socket();
+        let handshakeComplete = false;
+
+        rloginSocket.connect(config.port || 513, config.host, () => {
+            console.log('Rlogin TCP connection established, sending handshake');
+
+            // Rlogin protocol handshake (RFC 1282):
+            // 1. Send null byte
+            // 2. Send: local-username\0remote-username\0terminal-type/speed\0
+            const localUser = config.localUsername || config.remoteUsername || 'user';
+            const remoteUser = config.remoteUsername || 'user';
+            const terminalType = config.terminalType || 'xterm-256color';
+            const terminalSpeed = config.terminalSpeed || '38400';
+
+            const handshake = Buffer.concat([
+                Buffer.from([0]),  // Initial null byte
+                Buffer.from(localUser + '\0'),
+                Buffer.from(remoteUser + '\0'),
+                Buffer.from(terminalType + '/' + terminalSpeed + '\0')
+            ]);
+
+            rloginSocket.write(handshake);
+        });
+
+        rloginSocket.on('data', (data) => {
+            if (!handshakeComplete) {
+                // Server responds with null byte on success
+                if (data[0] === 0) {
+                    handshakeComplete = true;
+                    console.log('Rlogin handshake complete');
+                    socket.emit('connection-status', { status: 'connected', type: 'rlogin' });
+                    this.connections.set(connectionId, { type: 'rlogin', connection: rloginSocket });
+
+                    // Send any remaining data after the null byte
+                    if (data.length > 1) {
+                        socket.emit('data', data.slice(1).toString());
+                    }
+                } else {
+                    // Server sent error message instead of null byte
+                    socket.emit('error', { message: 'Rlogin handshake failed: ' + data.toString() });
+                    rloginSocket.destroy();
+                }
+            } else {
+                socket.emit('data', data.toString());
+            }
+        });
+
+        rloginSocket.on('error', (error) => {
+            console.error('Rlogin error:', error);
+            socket.emit('error', { message: 'Rlogin error: ' + error.message });
+        });
+
+        rloginSocket.on('close', () => {
+            console.log('Rlogin connection closed');
+            socket.emit('connection-status', { status: 'disconnected' });
+            this.connections.delete(connectionId);
+        });
+
+        rloginSocket.on('timeout', () => {
+            console.error('Rlogin connection timeout');
+            socket.emit('error', { message: 'Rlogin connection timeout' });
+            rloginSocket.destroy();
+        });
+
+        socket.on('input', (data) => {
+            if (rloginSocket && !rloginSocket.destroyed && handshakeComplete) {
+                rloginSocket.write(data);
+            }
+        });
+    }
+
     disconnect(connectionId) {
         const connection = this.connections.get(connectionId);
         if (connection) {
@@ -184,6 +259,8 @@ class ConnectionManager {
                     if (connection.stream) connection.stream.end();
                     if (connection.connection) connection.connection.end();
                 } else if (connection.type === 'telnet') {
+                    if (connection.connection) connection.connection.destroy();
+                } else if (connection.type === 'rlogin') {
                     if (connection.connection) connection.connection.destroy();
                 }
             } catch (error) {
@@ -213,14 +290,26 @@ io.on('connection', (socket) => {
 
     socket.on('connect-telnet', (config) => {
         console.log('Telnet connection request:', { host: config.host, port: config.port });
-        
+
         if (!isHostAllowed(config.host, 'telnet')) {
             console.log('Telnet connection denied - host not allowed:', config.host);
             socket.emit('error', { message: `Connection to ${config.host} is not permitted. Host not found in allowed hosts list.` });
             return;
         }
-        
+
         connectionManager.createTelnetConnection(socket, config);
+    });
+
+    socket.on('connect-rlogin', (config) => {
+        console.log('Rlogin connection request:', { host: config.host, port: config.port, remoteUsername: config.remoteUsername });
+
+        if (!isHostAllowed(config.host, 'rlogin')) {
+            console.log('Rlogin connection denied - host not allowed:', config.host);
+            socket.emit('error', { message: `Connection to ${config.host} is not permitted. Host not found in allowed hosts list.` });
+            return;
+        }
+
+        connectionManager.createRloginConnection(socket, config);
     });
 
     socket.on('disconnect', () => {

@@ -37,7 +37,7 @@ class TerminalGateway {
         this.fitAddon.fit();
 
         this.terminal.writeln('Welcome to Terminal Gateway');
-        this.terminal.writeln('Connect to a remote system using SSH or Telnet above.');
+        this.terminal.writeln('Connect to a remote system using SSH, Telnet, or Rlogin above.');
         this.terminal.write('\r\n$ ');
 
         this.terminal.onData((data) => {
@@ -111,6 +111,10 @@ class TerminalGateway {
             this.connectTelnet();
         });
 
+        document.getElementById('connect-rlogin').addEventListener('click', () => {
+            this.connectRlogin();
+        });
+
         document.getElementById('disconnect').addEventListener('click', () => {
             this.disconnect();
         });
@@ -123,6 +127,8 @@ class TerminalGateway {
                         this.connectSSH();
                     } else if (input.id.startsWith('telnet-')) {
                         this.connectTelnet();
+                    } else if (input.id.startsWith('rlogin-')) {
+                        this.connectRlogin();
                     }
                 }
             });
@@ -171,6 +177,29 @@ class TerminalGateway {
         });
     }
 
+    connectRlogin() {
+        const host = document.getElementById('rlogin-host').value.trim();
+        const port = parseInt(document.getElementById('rlogin-port').value) || 513;
+        const localUsername = document.getElementById('rlogin-local-username').value.trim();
+        const remoteUsername = document.getElementById('rlogin-remote-username').value.trim();
+
+        if (!host || !remoteUsername) {
+            alert('Please provide host and remote username for Rlogin connection');
+            return;
+        }
+
+        this.updateStatus('connecting', 'Connecting via Rlogin...');
+        this.terminal.clear();
+        this.terminal.writeln(`Connecting to ${remoteUsername}@${host}:${port}...`);
+
+        this.socket.emit('connect-rlogin', {
+            host: host,
+            port: port,
+            localUsername: localUsername || remoteUsername,
+            remoteUsername: remoteUsername
+        });
+    }
+
     disconnect() {
         this.socket.emit('force-disconnect');
         this.handleDisconnection();
@@ -196,7 +225,7 @@ class TerminalGateway {
     }
 
     updateUI(connected) {
-        const connectButtons = document.querySelectorAll('#connect-ssh, #connect-telnet');
+        const connectButtons = document.querySelectorAll('#connect-ssh, #connect-telnet, #connect-rlogin');
         const disconnectButton = document.getElementById('disconnect');
         const inputs = document.querySelectorAll('input');
         const connectionPanel = document.querySelector('.connection-panel');

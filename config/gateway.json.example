@@ -3,10 +3,11 @@
     {
       "host": "example.com",
       "description": "Example SSH server",
-      "protocols": ["ssh", "telnet"],
+      "protocols": ["ssh", "telnet", "rlogin"],
       "defaultPort": {
         "ssh": 22,
-        "telnet": 23
+        "telnet": 23,
+        "rlogin": 513
       }
     },
     {
